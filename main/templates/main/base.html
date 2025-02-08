@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
-    <link rel="stylesheet" href="{% static 'css/brand-detail.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Header -->
@@ -35,7 +35,7 @@
 
                 <div class="header__menu">
                     <a href="{% url 'brands' %}">БРЕНДЫ</a>
-                    <a href="#photo-video">ФОТО И ВИДЕО</a>
+                    <a href="{% url 'photo_gallery' %}">ФОТО И ВИДЕО</a>
                     <a href="#announcements">АНОНСЫ</a>
                     <a href="#about">О НАС</a>
                     <a href="#team">КОМАНДА</a>
@@ -92,7 +92,7 @@
         </div>
         <nav class="mobile-menu__nav">
             <a href="{% url 'brands' %}">БРЕНДЫ</a>
-            <a href="#photo-video">ФОТО И ВИДЕО</a>
+            <a href="{% url 'photo_gallery' %}">ФОТО И ВИДЕО</a>
             <a href="#announcements">АНОНСЫ</a>
             <a href="#about">О НАС</a>
             <a href="#team">КОМАНДА</a>
@@ -171,6 +171,23 @@
         // Инициализируем все бегущие строки
         createTicker('.ticker');
         createTicker('.brand-ticker');
+    });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+    // Обработка клика по ссылкам на секции главной страницы
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/') {
+                // Если мы не на главной странице, перенаправляем на главную с хэшем
+                const hash = this.getAttribute('href');
+                window.location.href = '/' + hash;
+                e.preventDefault();
+            }
+        });
     });
     </script>
 </body>

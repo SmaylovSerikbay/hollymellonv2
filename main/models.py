@@ -142,3 +142,109 @@ class BrandsPageSettings(models.Model):
 
     def __str__(self):
         return 'Настройки страницы брендов'
+
+class SiteSettings(models.Model):
+    yandex_token = models.CharField(
+        max_length=200,
+        verbose_name='Токен Яндекс.Диска',
+        help_text='OAuth токен для доступа к Яндекс.Диску'
+    )
+    
+    # Поля для секции "О нас"
+    about_text = models.TextField(
+        verbose_name='О нас',
+        help_text='Текст для секции "О нас"',
+        blank=True
+    )
+    about_image = models.ImageField(
+        upload_to='about/',
+        verbose_name='Изображение для секции "О нас"',
+        help_text='Рекомендуемый размер: 1920x1080px',
+        blank=True,
+        null=True
+    )
+    email = models.EmailField(
+        verbose_name='Email',
+        help_text='Контактный email',
+        blank=True
+    )
+    instagram_link = models.URLField(
+        verbose_name='Ссылка на Instagram',
+        help_text='Полный URL вашего Instagram аккаунта',
+        blank=True
+    )
+    tiktok_link = models.URLField(
+        verbose_name='Ссылка на TikTok',
+        help_text='Полный URL вашего TikTok аккаунта',
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = 'Настройки сайта'
+        verbose_name_plural = 'Настройки сайта'
+
+    def save(self, *args, **kwargs):
+        if not self.pk and SiteSettings.objects.exists():
+            return  # Предотвращаем создание более одной записи
+        return super(SiteSettings, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return 'Настройки сайта'
+
+class PhotoAlbum(models.Model):
+    title = models.CharField(max_length=200, verbose_name='Название')
+    cover_image = models.ImageField(upload_to='album_covers/', verbose_name='Обложка', null=True, blank=True)
+    yandex_folder = models.CharField(
+        max_length=200, 
+        verbose_name='Папка на Яндекс.Диске',
+        help_text='Укажите путь к папке на Яндекс.Диске (например: Photos/Events/2024)'
+    )
+    city = models.ForeignKey(City, on_delete=models.PROTECT, verbose_name='Город')
+    date = models.DateField(verbose_name='Дата')
+    created_at = models.DateTimeField(auto_now_add=True)
+    yandex_preview_url = models.URLField(max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = 'Фотоальбом'
+        verbose_name_plural = 'Фотоальбомы'
+        ordering = ['-date']
+
+    def __str__(self):
+        return self.title
+
+class Announcement(models.Model):
+    ANNOUNCEMENT_TYPES = [
+        ('event', 'Событие'),
+        ('promo', 'Акция'),
+        ('news', 'Новость'),
+    ]
+
+    type = models.CharField('Тип анонса', max_length=20, choices=ANNOUNCEMENT_TYPES, default='promo')
+    header = models.TextField('Заголовок анонса', blank=True, help_text='Например: "Готовимся к захватывающему событию: уже [дата] мы ждем вас на [название мероприятия]"')
+    is_active = models.BooleanField('Активно', default=True)
+    order = models.IntegerField('Порядок', default=0)
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    updated_at = models.DateTimeField('Дата обновления', auto_now=True)
+
+    class Meta:
+        verbose_name = 'Анонс'
+        verbose_name_plural = 'Анонсы'
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return f"Анонс #{self.id}"
+
+class AnnouncementItem(models.Model):
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE, related_name='items', verbose_name='Анонс')
+    title = models.CharField('Название', max_length=255)
+    description = models.TextField('Описание')
+    icon = models.CharField('Иконка', max_length=50, help_text='Например: star, gift, calendar', default='star')
+    order = models.IntegerField('Порядок', default=0)
+
+    class Meta:
+        verbose_name = 'Элемент анонса'
+        verbose_name_plural = 'Элементы анонса'
+        ordering = ['order']
+
+    def __str__(self):
+        return self.title
